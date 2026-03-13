@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DQ10 台本ジェネレーター</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0d0b1a;
+  --bg-secondary: #151030;
+  --bg-card: rgba(25, 20, 50, 0.85);
+  --bg-card-hover: rgba(38, 30, 72, 0.95);
+  --accent-gold: #d4a843;
+  --accent-gold-dim: rgba(212,168,67,0.5);
+  --accent-blue: #4a7bd4;
+  --accent-blue-dim: rgba(74,123,212,0.4);
+  --accent-purple: #8b5cf6;
+  --text-primary: #e8e0f0;
+  --text-secondary: #9890b0;
+  --text-muted: #5f5878;
+  --border-gold: rgba(212,168,67,0.35);
+  --border-blue: rgba(74,123,212,0.35);
+  --shadow-gold: 0 0 20px rgba(212,168,67,0.3);
+  --r: 8px;
+  --rl: 12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',sans-serif;background:linear-gradient(135deg,var(--bg-primary) 0%,var(--bg-secondary) 100%);min-height:100vh;color:var(--text-primary);overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(1px 1px at 15% 25%,rgba(255,255,255,.25) 0%,transparent 100%),radial-gradient(1px 1px at 85% 12%,rgba(255,255,255,.2) 0%,transparent 100%),radial-gradient(2px 2px at 55% 65%,rgba(212,168,67,.12) 0%,transparent 100%),radial-gradient(1px 1px at 8% 78%,rgba(255,255,255,.18) 0%,transparent 100%),radial-gradient(1px 1px at 92% 68%,rgba(255,255,255,.15) 0%,transparent 100%),radial-gradient(1px 1px at 40% 40%,rgba(74,123,212,.1) 0%,transparent 100%);pointer-events:none;z-index:0}
+.wrap{max-width:1120px;margin:0 auto;padding:0 16px;position:relative;z-index:1}
+
+/* HEADER */
+header{background:rgba(10,8,22,.92);border-bottom:1px solid var(--border-gold);padding:14px 0;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.hdr{display:flex;align-items:center;justify-content:space-between}
+.hdr-brand h1{font-size:1.35rem;font-weight:700;color:var(--accent-gold);text-shadow:0 0 12px var(--accent-gold-dim);letter-spacing:.04em}
+.hdr-brand p{font-size:.72rem;color:var(--text-secondary);margin-top:2px}
+.hdr-acts{display:flex;gap:8px}
+.ico-btn{background:var(--bg-card);border:1px solid var(--border-gold);color:var(--accent-gold);width:40px;height:40px;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.15rem;transition:all .2s}
+.ico-btn:hover{background:rgba(212,168,67,.15);box-shadow:var(--shadow-gold)}
+
+/* MAIN */
+main{padding:24px 0 100px}
+
+/* TABS */
+.mode-tabs{display:flex;gap:4px;margin-bottom:24px;background:var(--bg-card);border:1px solid var(--border-gold);border-radius:var(--rl);padding:6px}
+.tab-btn{flex:1;padding:10px 12px;background:transparent;border:1px solid transparent;border-radius:var(--r);color:var(--text-secondary);cursor:pointer;font-size:.88rem;font-family:inherit;font-weight:500;transition:all .2s;text-align:center}
+.tab-btn.active{background:linear-gradient(135deg,rgba(212,168,67,.22),rgba(74,123,212,.22));border-color:var(--border-gold);color:var(--accent-gold);box-shadow:inset 0 0 12px rgba(212,168,67,.08)}
+.tab-btn:hover:not(.active){color:var(--text-primary);background:rgba(255,255,255,.04)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* MODE1 HERO */
+.m1-hero{text-align:center;padding:36px 0 20px}
+.buzz-btn{background:linear-gradient(135deg,var(--accent-gold),#b8812a);color:#0b0918;border:none;padding:18px 52px;font-size:1.25rem;font-weight:700;border-radius:var(--rl);cursor:pointer;font-family:inherit;transition:all .3s;box-shadow:0 4px 24px rgba(212,168,67,.45);letter-spacing:.06em}
+.buzz-btn:hover{transform:translateY(-3px);box-shadow:0 8px 36px rgba(212,168,67,.65)}
+.buzz-btn:active{transform:translateY(0)}
+.buzz-btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.hint{color:var(--text-muted);font-size:.78rem;margin-top:10px}
+
+/* LOADING */
+.loading-area{display:none;text-align:center;padding:28px}
+.loading-area.on{display:block}
+.spinner{display:inline-block;width:42px;height:42px;border:3px solid var(--border-gold);border-top-color:var(--accent-gold);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-msg{color:var(--accent-gold);font-size:.92rem}
+
+/* FALLBACK */
+.fallback{display:none;margin-top:20px;background:var(--bg-card);border:1px solid var(--border-gold);border-radius:var(--rl);padding:20px}
+.fallback.on{display:block}
+.section-lbl{font-size:.72rem;font-weight:700;color:var(--accent-gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px}
+
+/* CARDS GRID */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:20px}
+.t-card{background:var(--bg-card);border:1px solid var(--border-gold);border-radius:var(--rl);padding:16px;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
+.t-card::before{content:'';position:absolute;inset:0;border-radius:var(--rl);opacity:0;transition:opacity .3s;background:linear-gradient(135deg,rgba(212,168,67,.1),rgba(74,123,212,.1))}
+.t-card:hover{border-color:var(--accent-gold);transform:translateY(-3px);animation:card-glow 1.6s ease-in-out infinite}
+.t-card:hover::before{opacity:1}
+@keyframes card-glow{0%,100%{box-shadow:0 0 18px rgba(212,168,67,.3)}50%{box-shadow:0 0 34px rgba(212,168,67,.55),0 0 60px rgba(212,168,67,.15)}}
+.genre-tag{display:inline-block;font-size:.68rem;padding:2px 8px;border-radius:20px;margin-bottom:8px;font-weight:600}
+.g-金策{background:rgba(212,168,67,.2);color:var(--accent-gold);border:1px solid var(--border-gold)}
+.g-攻略{background:rgba(74,123,212,.2);color:var(--accent-blue);border:1px solid var(--border-blue)}
+.g-初心者{background:rgba(52,211,153,.18);color:#34d399;border:1px solid rgba(52,211,153,.35)}
+.g-考察{background:rgba(167,139,250,.18);color:#a78bfa;border:1px solid rgba(167,139,250,.35)}
+.g-ネタ{background:rgba(251,146,60,.18);color:#fb923c;border:1px solid rgba(251,146,60,.35)}
+.g-復帰勢{background:rgba(244,63,94,.18);color:#f87171;border:1px solid rgba(244,63,94,.35)}
+.g-エンドコンテンツ{background:rgba(139,92,246,.18);color:var(--accent-purple);border:1px solid rgba(139,92,246,.35)}
+.g-装備{background:rgba(234,179,8,.18);color:#eab308;border:1px solid rgba(234,179,8,.35)}
+.card-title{font-size:.88rem;font-weight:700;color:var(--text-primary);margin-bottom:8px;line-height:1.45;position:relative;z-index:1}
+.card-desc{font-size:.74rem;color:var(--text-secondary);margin-bottom:8px;position:relative;z-index:1}
+.card-foot{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1}
+.card-buzz{color:var(--accent-gold);font-size:.74rem}
+.card-src{font-size:.64rem;color:var(--text-muted);background:rgba(255,255,255,.06);padding:2px 7px;border-radius:4px}
+
+/* WIZARD */
+.wizard-step{display:none;animation:fadein .3s ease}
+.wizard-step.active{display:block}
+@keyframes fadein{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
+.prog-bar{background:rgba(255,255,255,.08);border-radius:4px;height:4px;margin-bottom:24px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent-gold),var(--accent-blue));border-radius:4px;transition:width .4s ease}
+.step-num{font-size:.72rem;color:var(--accent-gold);font-weight:600;margin-bottom:6px}
+.step-title{font-size:1.08rem;font-weight:700;color:var(--text-primary);margin-bottom:20px}
+.choice-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px;margin-bottom:18px}
+.c-btn{padding:12px;background:var(--bg-card);border:1px solid var(--border-gold);border-radius:var(--r);color:var(--text-primary);cursor:pointer;font-family:inherit;font-size:.88rem;font-weight:500;text-align:center;transition:all .2s}
+.c-btn:hover{background:rgba(212,168,67,.14);border-color:var(--accent-gold)}
+.c-btn.selected{background:linear-gradient(135deg,rgba(212,168,67,.25),rgba(74,123,212,.25));border-color:var(--accent-gold);color:var(--accent-gold);box-shadow:0 0 12px rgba(212,168,67,.2)}
+.step-nav{display:flex;align-items:center;justify-content:space-between;margin-top:20px}
+
+/* INPUTS */
+textarea,input[type=text],input[type=password]{width:100%;background:rgba(12,10,26,.85);border:1px solid var(--border-gold);border-radius:var(--r);color:var(--text-primary);font-family:inherit;font-size:.88rem;padding:11px;resize:vertical;transition:border-color .2s}
+textarea:focus,input:focus{outline:none;border-color:var(--accent-gold);box-shadow:0 0 10px rgba(212,168,67,.18)}
+textarea::placeholder,input::placeholder{color:var(--text-muted)}
+
+/* BUTTONS */
+.btn{padding:10px 20px;border-radius:var(--r);cursor:pointer;font-family:inherit;font-size:.88rem;font-weight:500;transition:all .2s;border:none;display:inline-flex;align-items:center;gap:6px}
+.btn-gold{background:linear-gradient(135deg,var(--accent-gold),#b8812a);color:#0b0918}
+.btn-gold:hover{box-shadow:0 4px 16px rgba(212,168,67,.45);transform:translateY(-1px)}
+.btn-ghost{background:transparent;border:1px solid var(--border-gold);color:var(--text-secondary)}
+.btn-ghost:hover{color:var(--text-primary);background:rgba(255,255,255,.05)}
+.btn-blue{background:linear-gradient(135deg,var(--accent-blue),#2a5ab0);color:#fff}
+.btn-blue:hover{box-shadow:0 4px 16px rgba(74,123,212,.4);transform:translateY(-1px)}
+.btn-green{background:linear-gradient(135deg,#34d399,#059669);color:#fff;font-size:.95rem;padding:13px 26px}
+.btn-green:hover{box-shadow:0 4px 16px rgba(52,211,153,.4);transform:translateY(-1px)}
+.btn-danger{background:transparent;border:1px solid rgba(244,63,94,.35);color:#f87171}
+.btn-danger:hover{background:rgba(244,63,94,.1)}
+.btn-skip{background:transparent;border:1px dashed var(--border-gold);color:var(--text-muted);font-size:.78rem;padding:6px 14px}
+.news-fetch-btn{background:transparent;border:1px dashed var(--border-blue);color:var(--accent-blue);padding:7px 14px;border-radius:var(--r);cursor:pointer;font-family:inherit;font-size:.78rem;margin-top:8px;transition:all .2s}
+.news-fetch-btn:hover{background:rgba(74,123,212,.1)}
+
+/* PROMPT AREA */
+.prompt-area{display:none;margin-top:32px;padding-top:28px;border-top:1px solid var(--border-gold)}
+.prompt-area.on{display:block;animation:fadein .4s ease}
+.prompt-area-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.prompt-area-title{font-size:1.08rem;font-weight:700;color:var(--accent-gold)}
+.prompt-preview{background:rgba(5,3,15,.95);border:1px solid var(--border-gold);border-radius:var(--rl);padding:20px;font-size:.83rem;line-height:1.75;color:var(--text-primary);white-space:pre-wrap;max-height:420px;overflow-y:auto;margin-bottom:16px;font-family:'Noto Sans JP',monospace}
+.prompt-preview::-webkit-scrollbar{width:5px}
+.prompt-preview::-webkit-scrollbar-track{background:rgba(255,255,255,.04)}
+.prompt-preview::-webkit-scrollbar-thumb{background:var(--accent-gold-dim);border-radius:3px}
+.prompt-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.how-to{background:rgba(74,123,212,.1);border:1px solid var(--border-blue);border-radius:var(--r);padding:12px 16px;font-size:.83rem;color:var(--text-secondary)}
+.how-to strong{color:var(--accent-blue)}
+.ht-steps{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.ht-step{background:rgba(74,123,212,.18);border-radius:var(--r);padding:4px 10px;font-size:.78rem;color:var(--accent-blue);white-space:nowrap}
+.ht-arrow{color:var(--text-muted);font-size:.75rem}
+
+/* PANELS (Settings / History) */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:200;backdrop-filter:blur(4px)}
+.overlay.on{display:block}
+.panel{position:fixed;top:0;right:-620px;width:min(600px,96vw);height:100vh;background:linear-gradient(180deg,#0f0c22 0%,#130f2a 100%);border-left:1px solid var(--border-gold);z-index:300;transition:right .32s ease;overflow-y:auto;padding:24px}
+.panel.open{right:0}
+.panel::-webkit-scrollbar{width:5px}
+.panel::-webkit-scrollbar-thumb{background:var(--accent-gold-dim);border-radius:3px}
+.panel-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--border-gold)}
+.panel-title{font-size:1.08rem;font-weight:700;color:var(--accent-gold)}
+.close-btn{background:transparent;border:1px solid var(--border-gold);color:var(--text-secondary);width:32px;height:32px;border-radius:var(--r);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.close-btn:hover{color:var(--text-primary);background:rgba(255,255,255,.06)}
+.set-sec{margin-bottom:26px}
+.set-lbl{display:block;font-size:.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:8px}
+.set-acts{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+
+/* HISTORY */
+.hist-item{background:var(--bg-card);border:1px solid var(--border-gold);border-radius:var(--r);padding:13px;margin-bottom:10px;cursor:pointer;transition:all .2s}
+.hist-item:hover{border-color:var(--accent-gold);background:var(--bg-card-hover)}
+.hist-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.hist-title{font-size:.83rem;font-weight:700;color:var(--text-primary);flex:1;margin-right:8px;line-height:1.4}
+.hist-date{font-size:.68rem;color:var(--text-muted);white-space:nowrap;flex-shrink:0}
+.hist-preview{font-size:.74rem;color:var(--text-secondary);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.hist-acts{display:flex;gap:6px;margin-top:8px}
+.hist-empty{text-align:center;color:var(--text-muted);padding:48px 0;font-size:.88rem}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:rgba(52,211,153,.95);color:#052e16;padding:12px 26px;border-radius:var(--rl);font-weight:700;font-size:.88rem;z-index:1000;transition:transform .3s ease;white-space:nowrap;pointer-events:none}
+.toast.on{transform:translateX(-50%) translateY(0)}
+
+/* MISC */
+hr.divider{border:none;border-top:1px solid rgba(255,255,255,.07);margin:18px 0}
+.text-sm{font-size:.78rem;color:var(--text-muted);margin-top:6px}
+
+/* RESPONSIVE */
+@media(max-width:640px){
+  .hdr-brand h1{font-size:1.05rem}
+  .buzz-btn{font-size:1.05rem;padding:14px 28px}
+  .cards-grid{grid-template-columns:1fr}
+  .choice-grid{grid-template-columns:repeat(2,1fr)}
+  .prompt-actions{flex-direction:column}
+  .ht-steps{flex-direction:column;align-items:flex-start}
+  .panel{width:100vw}
+  .mode-tabs{gap:2px}
+  .tab-btn{font-size:.78rem;padding:9px 6px}
+}
+@media(max-width:380px){
+  .choice-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- Embedded STYLE_GUIDE (read by JS, not executed) -->
+<textarea id="sg-default" style="display:none" readonly># YouTube台本スタイルガイド
+## ドラゴンクエスト10チャンネル（ビィビ × りりせ 対話形式）
+
+サンプル台本「淡路島のドラクエアイランド編」を分析して作成したスタイルガイドです。
+
+---
+
+## 1. ビィビの口調・語尾パターン
+
+### 基本的な語尾の傾向
+- 語尾が柔らかく親しみやすい（「〜だよ」「〜なの」「〜から」）
+- 感嘆符（！）で元気よく締める場面が多い
+- 自信満々に言い切ったあと、ツッコまれるボケ担当
+
+### 具体例（5例以上）
+
+| パターン | 例文 | 使用場面 |
+|---|---|---|
+| `〜だよ` / `〜だよね` | 「それが「ドラゴンクエスト アイランド」だよね」 | 情報共有・確認 |
+| `〜なの` / `〜なんだよ` | 「橋の上を走るとまるで海の上を飛んでるような感覚になるの」 | 情景・感情の描写 |
+| `〜から` / `〜からね` | 「愛知県民は車の運転慣れてるから安心して」 | 理由づけ・断言 |
+| `〜しちゃいました` | 「結構買っちゃいました...」 | 自白・自虐的な告白 |
+| `〜て！` / `〜して！` | 「覚えておいて！」「レッツゴー！」 | 視聴者への呼びかけ・テンション上昇 |
+| `〜かな〜` | 「良いんじゃないかな〜と個人的には思ってる！」 | 個人的な意見・柔らかい推薦 |
+| `...` (無言・沈黙) | 「まさか尾張●牧ナンバーじゃ... 」→「...」 | ツッコまれて返す言葉がないとき |
+| `そうそう！` / `うんうん！` | 「そうそう！新神戸からレンタカーを借りて」 | りりせの発言への同意・テンポアップ |
+
+### ビィビのキャラクター特性
+- ゲームが得意ではない（「画面の中でも魔王倒せてない」と認める）
+- 愛知県民で車の運転に自信がある
+- ショッピングでついつい買いすぎる
+- 芸術センスがない（スライム色塗りをスキップ）
+- フレンドがいないと思われがちだが実際はいる
+
+---
+
+## 2. りりせの口調・語尾パターン
+
+### 基本的な語尾の傾向
+- 疑問文が多く、ビィビに説明を引き出す「聞き役」
+- ツッコミは「〜けどね」「〜じゃ...」と語尾をぼかして柔らかく刺す
+- 視聴者視点で「それは〜」と共感フレーズを添える
+
+### 具体例（5例以上）
+
+| パターン | 例文 | 使用場面 |
+|---|---|---|
+| `〜けどね` | 「ビィビちゃんの場合は画面の中でも魔王倒せてないけどね」 | 柔らかいツッコミ・事実の指摘 |
+| `〜だもんね` | 「子供がつまらなそうにしたらかわいそうだもんね」 | 視聴者感情への共感 |
+| `〜じゃ...` (省略・探り) | 「まさか尾張●牧ナンバーじゃ...」 | 意地悪な推測・じらし |
+| `〜の？` / `〜なの？` | 「ビィビちゃん運転できるの？」「ビィビちゃんはやらなかったの」 | 素朴な疑問・追及 |
+| `〜だ` (断言・驚き) | 「フレンドいたんだ」 | 意外性への反応 |
+| `〜かな？` | 「ちなみに事前予約は必須かな？」 | 視聴者を代表した質問 |
+| `わき見運転しないでね...` | （不安を語尾「...」で表現） | 心配・釘を刺す |
+| `〜は大事だからね！` | 「冒険前のエネルギーチャージは大事だからね！」 | ビィビの発言への肯定ツッコミ |
+
+### りりせのキャラクター特性
+- 視聴者が「聞きたいこと」を代わりに質問する役割
+- ビィビの欠点や矛盾を優しく突っ込む
+- 感情移入が豊か（「それはめっちゃ気になる...」など）
+- ビィビのボケに対して冷静に一言返す
+
+---
+
+## 3. ボケとツッコミの入れ方パターン
+
+### パターン A：ビィビ自信満々 → りりせ一刀両断
+
+```
+ビィビ:「〜だから安心して！」（根拠のない自信）
+りりせ:「まさか〜じゃ...」（弱点を突く）
+ビィビ:「...」（無言で認める）
+```
+
+例：
+&gt; ビィビ「愛知県民は車の運転慣れてるから安心して」
+&gt; りりせ「まさか尾張●牧ナンバーじゃ...」
+&gt; ビィビ「...」
+
+---
+
+### パターン B：ビィビが弱点を開示 → りりせが追撃
+
+```
+ビィビ:「〜なんだ（自虐）」
+りりせ:「〜なのに〜なの？（追撃）」
+ビィビ:「〜って言ってるでしょ！（言い訳）」
+```
+
+例：
+&gt; りりせ「フレンドいたんだ」
+&gt; ビィビ「いるって言ってるでしょ！」
+
+---
+
+### パターン C：りりせが先に心配 → ビィビが後で認める
+
+```
+りりせ:「〜しないでね...（先行して警告）」
+（シーン進む）
+ビィビ:「いやだ！おろして！（後で証明される）」
+```
+
+例：
+&gt; りりせ「わき見運転しないでね...」
+&gt; ビィビ「それではレッツゴー！」
+&gt; りりせ「いやだ！おろして！」
+
+---
+
+### パターン D：視聴者目線の共感ツッコミ
+
+```
+りりせ:「〜だもんね（視聴者と同じ気持ちを代弁）」
+ビィビ:「そうそう！（肯定して次の話題へ）」
+```
+
+例：
+&gt; りりせ「遊びに行って熱中症になっちゃったら最悪だもんね」
+&gt; ビィビ「そうそう...ドラクエの主人公って〜」
+
+---
+
+### パターン E：ボケへの「仕方ない」許容
+
+```
+ビィビ:「〜ちゃいました（自白）」
+りりせ:「まぁ〜だから仕方ないね（甘いツッコミ）」
+```
+
+例：
+&gt; ビィビ「結構買っちゃいました...」
+&gt; りりせ「まぁ旅の思い出だから仕方ないね...」
+
+---
+
+## 4. 話題の導入 → 展開 → まとめの流れ
+
+### 全体構造
+
+```
+[冒頭の挨拶]
+  └─ キャラクター名乗り + 今回のテーマ宣言
+
+[アジェンダ提示]
+  └─ 「この動画を見るとわかること」番号リスト（2〜4項目）
+
+[フック（視聴者への問いかけ）]
+  └─ 共感を呼ぶ問い → 「そんな夢が叶う場所が〜」
+
+[本題（セクション構成）]
+  アクセス方法 → 現地の食事 → チケット選び
+  → アトラクション体験 → 体験コツ → グッズ
+  ※各セクションは「まずは〜から！」で導入
+
+[まとめ]
+  └─ 「〜のポイントは」番号リスト（4〜6項目）
+  └─ ターゲット別おすすめ締め（友達・家族・カップル）
+
+[クロージング]
+  └─ コメント欄への誘導 → 締めの挨拶
+```
+
+### セクション内の展開パターン
+
+```
+導入一文（ビィビが宣言）
+  ↓
+りりせの質問（視聴者の疑問を代弁）
+  ↓
+ビィビの説明（情報提供）
+  ↓
+ボケ or ツッコミ（1〜2往復）
+  ↓
+りりせの補足/共感（まとめ役）
+  ↓
+次セクションへのブリッジ
+```
+
+---
+
+## 5. 視聴者への語りかけフレーズ集
+
+### 問いかけ・共感誘導
+- 「みんなはドラクエの世界に入ってみたいって思ったことない？」
+- 「〜ってなったことない？」
+
+### 情報・行動を促す
+- 「覚えておいて！」
+- 「気になる人は公式へ電話してね」
+- 「〜がおすすめ！」
+- 「〜だから安心して」
+- 「〜に気をつけないとね」
+
+### 共感・感情を引き出す
+- 「〜だよ！めちゃくちゃ気になる...」
+- 「〜こと間違いなしの〜なんだよ」
+- 「大人から子供まで楽しめる」
+- 「友達と行っても家族と行っても カップルで行っても最高の思い出になると思う」
+
+### 体験報告への誘導（エンゲージメント）
+- 「もし行ってきたよって人がいたらコメント欄で感想教えてね」
+- 「ぜひ自分だけの物語を紡いでみてね」
+
+### ネタバレ・注意の前置き
+- 「この動画は私の体験談になります」
+- 「若干のネタバレを含みますのでご了承ください」
+- 「ネタバレにならないように公式以上の写真は載せませんが」
+
+---
+
+## 6. セクション間のつなぎ方
+
+### 前進するつなぎ（次の話題へ移行）
+- `まずは〜から！` ― 最初のセクション導入
+- `次はいよいよ〜の話！` ― クライマックスへの期待感
+- `最後に〜！` ― 締めくくりセクション
+
+### 会話から自然に移行するつなぎ
+- `そういえば〜だよね？` ― りりせが話題を切り替える
+- `でもはやる気持ちを抑えて！` ― 逸れた話を本題に戻す
+- `ちなみに〜かな？` ― 補足情報を引き出す
+
+### 感情のピークを作るつなぎ
+- `ここで重要なポイントがあります！` ― 注意喚起
+- `それはめっちゃ気になる...` ― 次セクションへの興味を高める
+- 「いやだ！おろして！」のような会話劇でセクション間に笑いを挟む
+
+---
+
+## 7. 冒頭の挨拶パターン
+
+### 標準テンプレート
+
+```
+[キャラクター名乗り]
+ビィビです！今回は
+〔テーマ〕について
+お伝えします
+
+[アジェンダ（番号リスト）]
+この動画を見るとわかることはこちらです
+1. 〔ポイント1〕
+2. 〔ポイント2〕
+3. 〔ポイント3〕
+
+[前置き・免責]
+この動画は私の体験談になります
+〔注意事項〕をご了承ください
+
+[スタート宣言]
+それでは始めていきます
+```
+
+### バリエーション要素
+- テーマは「〜について」と明示
+- アジェンダは2〜4項目（視聴者が内容を把握しやすいよう）
+- 免責・前置きは任意（体験談・ネタバレがある場合に追加）
+- スタート宣言「それでは始めていきます」は固定フレーズ
+
+---
+
+## 8. 締めのパターン
+
+### 標準テンプレート
+
+```
+[ポイントまとめ（番号リスト）]
+〔テーマ〕のポイントは
+1. 〔ポイント1〕
+2. 〔ポイント2〕
+…
+
+[ターゲット別おすすめ]
+〔誰と行っても〕最高の思い出になると思う
+
+[視聴者への問い返し・エンゲージメント]
+ビィビちゃんはまた行きたい？（→ キャラクターに聞く）
+すぐにでも行きたい！
+
+[コメント欄への誘導]
+もし〔体験〕した人がいたら
+コメント欄で感想教えてね
+
+[締めの言葉]
+でもみんなそれぞれの〔体験〕があるから
+ぜひ自分だけの物語を紡いでみてね
+
+[クロージング定型文]
+それでは本日の動画はここまでとなります
+ご視聴いただきありがとうございます
+```
+
+### チャンネル登録の促し（推奨追加位置）
+サンプル台本には明示的な登録促しは含まれていないが、
+クロージング直前に以下を追加することを推奨：
+
+```
+チャンネル登録・高評価もよろしくね！
+次回の動画もお楽しみに♪
+```
+
+---
+
+## 9. 1セクションあたりの平均的なやりとり回数
+
+### セクション別カウント（サンプル台本より）
+
+| セクション | 発話ターン数 | 備考 |
+|---|---|---|
+| 冒頭の挨拶・アジェンダ | 1（ビィビ独白） | りりせ登場前 |
+| フック・舞台設定 | 4〜5往復 | ドラクエの夢→淡路島の紹介 |
+| アクセス方法 | 6〜8往復 | 新神戸→SA→ニジゲンノモリ |
+| ルイーダの酒場 | 6〜8往復 | 外観→メニュー→チケット不要の情報 |
+| チケット選び | 5〜6往復 | 3種類の説明→おすすめ→予約 |
+| アトラクション体験 | 7〜9往復 | パーティ→職業→戦闘→歩く注意 |
+| グッズショップ | 4〜5往復 | 種類→買いすぎ自白 |
+| まとめ | 6〜8往復 | ポイントリスト→締め |
+
+**平均：5〜8往復 / セクション**
+
+### 会話リズムの法則
+- りりせの質問1回 → ビィビの説明1〜2文 → ボケかツッコミ1往復
+- 重要情報の前後に「ね！」「そうそう！」の短い相づちを挟む
+- 1セクションに笑いどころ（ボケ/ツッコミ）は1〜2回
+
+---
+
+## 10. 全体の文字数と構成比率
+
+### 文字数計測（サンプル台本）
+
+| パート | 概算文字数 | 構成比 |
+|---|---|---|
+| **導入**（挨拶・アジェンダ・フック） | 約 350 字 | 約 12% |
+| **本題**（アクセス・食事・チケット・体験・グッズ） | 約 2,200 字 | 約 76% |
+| **まとめ**（ポイントリスト・締め・クロージング） | 約 350 字 | 約 12% |
+| **合計** | **約 2,900 字** | **100%** |
+
+### 推奨比率
+
+```
+導入 : 本題 : まとめ ≒ 1 : 6〜7 : 1
+```
+
+- 導入が長すぎると視聴者が離脱するため、アジェンダは簡潔に
+- 本題は複数セクションに分割し、各セクション300〜500字程度
+- まとめはポイントリスト形式で、視聴者が後で見返しやすい構成
+
+### 読み上げ時間の目安
+- 日本語は約400〜500字/分（YouTube向け適度なテンポ）
+- 約2,900字 → **読み上げ約6〜7分**
+- ゆっくり喋る・効果音・BGM等を含めると **動画尺10〜12分** が目安
+
+---
+
+## まとめ：台本作成チェックリスト
+
+- [ ] 冒頭にビィビが名乗り、テーマを宣言しているか
+- [ ] アジェンダ（番号リスト）を2〜4項目提示しているか
+- [ ] 必要に応じて前置き・免責を入れているか
+- [ ] セクションは「まずは〜から！」などのつなぎで区切っているか
+- [ ] りりせが視聴者の疑問を代弁する質問をしているか
+- [ ] 各セクションにボケとツッコミが1〜2回あるか
+- [ ] 視聴者への語りかけフレーズが含まれているか
+- [ ] まとめセクションにポイントリストがあるか
+- [ ] コメント欄・チャンネル登録への誘導があるか
+- [ ] 締めの定型文「それでは本日の動画はここまでとなります」があるか
+- [ ] 導入:本題:まとめ ≒ 1:6:1 の比率になっているか
+</textarea>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+<!-- Overlay -->
+<div class="overlay" id="overlay" onclick="closePanels()"></div>
+
+<!-- Settings Panel -->
+<div class="panel" id="panel-settings">
+  <div class="panel-hdr">
+    <span class="panel-title">⚙️ 設定</span>
+    <button class="close-btn" onclick="closePanels()">✕</button>
+  </div>
+  <div class="set-sec">
+    <label class="set-lbl">📖 スタイルガイド（キャラクター設定・台本ルール）<br><span style="font-weight:400;font-size:.7rem;color:var(--text-muted)">台本プロンプト生成時にキャラクター設定部分へ自動挿入されます</span></label>
+    <textarea id="sg-editor" rows="14" placeholder="スタイルガイドを入力..."></textarea>
+    <div class="set-acts">
+      <button class="btn btn-gold" onclick="saveStyleGuide()">💾 保存</button>
+      <button class="btn btn-ghost" onclick="resetStyleGuide()">🔄 デフォルトに戻す</button>
+    </div>
+  </div>
+  <hr class="divider">
+  <div class="set-sec">
+    <label class="set-lbl">🎯 デフォルトのターゲット視聴者</label>
+    <div class="choice-grid" id="default-target-grid">
+      <button class="c-btn" data-value="初心者・ライト層" onclick="selDefTarget(this)">🌱 初心者・ライト層</button>
+      <button class="c-btn" data-value="中級者" onclick="selDefTarget(this)">⚔️ 中級者</button>
+      <button class="c-btn" data-value="ガチ勢・エンドコンテンツ勢" onclick="selDefTarget(this)">🏆 ガチ勢</button>
+    </div>
+    <button class="btn btn-gold" onclick="saveDefTarget()">💾 保存</button>
+  </div>
+  <hr class="divider">
+  <div class="set-sec">
+    <label class="set-lbl">🔑 YouTube Data API キー（任意）<br><span style="font-weight:400;font-size:.7rem;color:var(--text-muted)">設定するとYouTube人気動画からもキーワードを取得します</span></label>
+    <input type="password" id="yt-key" placeholder="AIzaS...（なくても動作します）">
+    <div class="set-acts">
+      <button class="btn btn-gold" onclick="saveYtKey()">💾 保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- History Panel -->
+<div class="panel" id="panel-history">
+  <div class="panel-hdr">
+    <span class="panel-title">📜 プロンプト履歴</span>
+    <button class="close-btn" onclick="closePanels()">✕</button>
+  </div>
+  <div id="hist-list"></div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="wrap">
+    <div class="hdr">
+      <div class="hdr-brand">
+        <h1>⚔️ DQ10 台本ジェネレーター</h1>
+        <p>ネタ探し → プロンプト生成 → claude.ai で台本作成</p>
+      </div>
+      <div class="hdr-acts">
+        <button class="ico-btn" onclick="openHistory()" title="履歴">📜</button>
+        <button class="ico-btn" onclick="openSettings()" title="設定">⚙️</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main>
+<div class="wrap">
+
+<!-- MODE TABS -->
+<div class="mode-tabs" role="tablist">
+  <button class="tab-btn active" onclick="switchTab(0)" role="tab">🎯 ワンクリック・ネタ探し</button>
+  <button class="tab-btn" onclick="switchTab(1)" role="tab">🗺️ 対話型ネタ探し</button>
+</div>
+
+<!-- ====== MODE 1 ====== -->
+<div class="tab-panel active" id="tab-0">
+  <div class="m1-hero">
+    <button class="buzz-btn" id="buzz-btn" onclick="startBuzz()">✨ バズるネタを探す</button>
+    <p class="hint">DQ10の最新情報をもとにタイトル候補を20個生成します</p>
+  </div>
+  <div class="loading-area" id="loading-area">
+    <div class="spinner"></div>
+    <p class="loading-msg" id="loading-msg">スライムが情報を集めています...</p>
+  </div>
+  <div class="fallback" id="fallback">
+    <div class="section-lbl">手動入力フォールバック</div>
+    <p style="font-size:.82rem;color:var(--text-secondary);margin-bottom:12px">DQ10公式サイト（hiroba.dqx.jp）の最新ニュースをコピーして貼り付けてください</p>
+    <textarea id="manual-input" rows="5" placeholder="最新ニュースのテキストをここに貼り付けてください..."></textarea>
+    <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn btn-gold" onclick="genFromManual()">✨ ネタを生成する</button>
+      <button class="btn btn-ghost" onclick="genFromDefaults()">デフォルトで生成</button>
+    </div>
+  </div>
+  <div class="cards-grid" id="cards-grid"></div>
+</div>
+
+<!-- ====== MODE 2 ====== -->
+<div class="tab-panel" id="tab-1">
+  <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:20%"></div></div>
+
+  <!-- Step 1 -->
+  <div class="wizard-step active" id="ws-1">
+    <div class="step-num">ステップ 1 / 5</div>
+    <div class="step-title">ジャンルを選んでください</div>
+    <div class="choice-grid">
+      <button class="c-btn" data-field="genre" data-value="金策" onclick="selChoice(this)">💰 金策</button>
+      <button class="c-btn" data-field="genre" data-value="攻略" onclick="selChoice(this)">⚔️ 攻略</button>
+      <button class="c-btn" data-field="genre" data-value="装備" onclick="selChoice(this)">🛡️ 装備</button>
+      <button class="c-btn" data-field="genre" data-value="初心者向け" onclick="selChoice(this)">🌱 初心者向け</button>
+      <button class="c-btn" data-field="genre" data-value="ストーリー考察" onclick="selChoice(this)">📖 ストーリー考察</button>
+      <button class="c-btn" data-field="genre" data-value="あるある・ネタ" onclick="selChoice(this)">😂 あるある・ネタ</button>
+      <button class="c-btn" data-field="genre" data-value="復帰勢" onclick="selChoice(this)">🔄 復帰勢</button>
+      <button class="c-btn" data-field="genre" data-value="コロシアム・エンドコンテンツ" onclick="selChoice(this)">🏆 エンドコンテンツ</button>
+    </div>
+    <div class="step-nav">
+      <span></span>
+      <button class="btn btn-gold" onclick="goStep(2)">次へ →</button>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="wizard-step" id="ws-2">
+    <div class="step-num">ステップ 2 / 5</div>
+    <div class="step-title">具体的なテーマを入力</div>
+    <textarea id="theme-input" rows="4" placeholder="例：バージョン7.2の新ボスが強すぎる、最新アプデの職人生活、聖守護者の闘戦記の攻略法..."></textarea>
+    <button class="news-fetch-btn" onclick="fetchNewsStep2()">📡 最近のDQ10ニュースから選ぶ</button>
+    <div id="step2-news" style="margin-top:12px"></div>
+    <div class="step-nav">
+      <button class="btn btn-ghost" onclick="goStep(1)">← 戻る</button>
+      <button class="btn btn-gold" onclick="goStep(3)">次へ →</button>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="wizard-step" id="ws-3">
+    <div class="step-num">ステップ 3 / 5</div>
+    <div class="step-title">ターゲット視聴者</div>
+    <div class="choice-grid">
+      <button class="c-btn" data-field="target" data-value="初心者・ライト層" onclick="selChoice(this)">🌱 初心者・ライト層</button>
+      <button class="c-btn" data-field="target" data-value="中級者" onclick="selChoice(this)">⚔️ 中級者</button>
+      <button class="c-btn" data-field="target" data-value="ガチ勢・エンドコンテンツ勢" onclick="selChoice(this)">🏆 ガチ勢・エンドコンテンツ勢</button>
+    </div>
+    <div class="step-nav">
+      <button class="btn btn-ghost" onclick="goStep(2)">← 戻る</button>
+      <button class="btn btn-gold" onclick="goStep(4)">次へ →</button>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="wizard-step" id="ws-4">
+    <div class="step-num">ステップ 4 / 5</div>
+    <div class="step-title">動画の長さ</div>
+    <div class="choice-grid">
+      <button class="c-btn" data-field="duration" data-value="ショート（1分）" data-words="800" onclick="selChoice(this)">⚡ ショート（1分）</button>
+      <button class="c-btn" data-field="duration" data-value="5〜8分" data-words="4000" onclick="selChoice(this)">🎬 5〜8分</button>
+      <button class="c-btn" data-field="duration" data-value="10〜15分" data-words="8000" onclick="selChoice(this)">📺 10〜15分</button>
+      <button class="c-btn" data-field="duration" data-value="15分以上" data-words="12000" onclick="selChoice(this)">🎭 15分以上</button>
+    </div>
+    <div class="step-nav">
+      <button class="btn btn-ghost" onclick="goStep(3)">← 戻る</button>
+      <button class="btn btn-gold" onclick="goStep(5)">次へ →</button>
+    </div>
+  </div>
+
+  <!-- Step 5 -->
+  <div class="wizard-step" id="ws-5">
+    <div class="step-num">ステップ 5 / 5</div>
+    <div class="step-title">追加情報（任意）</div>
+    <textarea id="extra-input" rows="5" placeholder="特に入れたいネタ、自分の体験談、参考URLなど（スキップ可）"></textarea>
+    <div class="step-nav">
+      <button class="btn btn-ghost" onclick="goStep(4)">← 戻る</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-skip" onclick="skipExtra()">スキップ</button>
+        <button class="btn btn-gold" onclick="genFromWizard()">✨ プロンプト生成</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== PROMPT OUTPUT ====== -->
+<div class="prompt-area" id="prompt-area">
+  <div class="prompt-area-hdr">
+    <span class="prompt-area-title">📋 生成されたプロンプト</span>
+    <button class="btn btn-ghost" style="font-size:.78rem;padding:6px 12px" onclick="closePrompt()">✕ 閉じる</button>
+  </div>
+  <div class="prompt-preview" id="prompt-preview"></div>
+  <div class="prompt-actions">
+    <button class="btn btn-green" id="copy-btn" onclick="copyPrompt()">📋 プロンプトをコピー</button>
+    <button class="btn btn-blue" onclick="window.open('https://claude.ai/new','_blank')">🤖 claude.ai を開く</button>
+  </div>
+  <div class="how-to">
+    <strong>使い方</strong>
+    <div class="ht-steps">
+      <span class="ht-step">① コピーボタンを押す</span>
+      <span class="ht-arrow">→</span>
+      <span class="ht-step">② claude.ai を開く</span>
+      <span class="ht-arrow">→</span>
+      <span class="ht-step">③ 貼り付けて送信</span>
+      <span class="ht-arrow">→</span>
+      <span class="ht-step">④ 台本完成！</span>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+</main>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const LOADING_MSGS = [
+  'スライムが情報を集めています...',
+  '賢者が最新ニュースを分析中...',
+  'ルイーダの酒場で情報収集中...',
+  '冒険者ギルドに問い合わせ中...',
+  'ドルボードで素早く情報を取りに行っています...',
+  'メガモンスターの出現情報を確認中...',
+  'バージョン情報を精査しています...',
+  '呪文「インフォマージョ」詠唱中...',
+];
+
+const TEMPLATES = [
+  {t:'【DQ10】知らないと損する{k}の裏技',g:'攻略',b:5},
+  {t:'【DQ10】99%の人が間違ってる{k}',g:'攻略',b:5},
+  {t:'【DQ10】{k}を最速で終わらせる方法',g:'攻略',b:4},
+  {t:'【DQ10】復帰勢がまずやるべき{k}',g:'復帰勢',b:4},
+  {t:'【DQ10】{k}が強すぎてヤバい件',g:'攻略',b:5},
+  {t:'【DQ10】金策で{k}するだけで時給○万G',g:'金策',b:5},
+  {t:'【DQ10】最新アプデの{k}、正直どうなの？',g:'考察',b:4},
+  {t:'【DQ10】{k}完全攻略ガイド',g:'攻略',b:3},
+  {t:'【DQ10】{k}で初心者が躓く5つのポイント',g:'初心者',b:4},
+  {t:'【DQ10】ガチ勢が教える{k}の正しいやり方',g:'エンドコンテンツ',b:4},
+  {t:'【DQ10】{k}の真実、衝撃の事実が判明',g:'考察',b:5},
+  {t:'【DQ10】{k}が熱い！最新情報まとめ',g:'攻略',b:3},
+  {t:'【DQ10】{k}でまじで稼げる？検証してみた',g:'金策',b:5},
+  {t:'【DQ10】{k}の罠にハマった話',g:'ネタ',b:4},
+  {t:'【DQ10】{k}が変わった！新仕様を徹底解説',g:'攻略',b:4},
+  {t:'【DQ10】{k}の最強装備はこれだ',g:'装備',b:4},
+  {t:'【DQ10】{k}で勝てない人へ',g:'攻略',b:4},
+  {t:'【DQ10】神アプデで{k}が超楽しくなった件',g:'攻略',b:4},
+  {t:'【DQ10】{k}やってる人だけが知っている秘密',g:'攻略',b:5},
+  {t:'【DQ10】{k}に挑戦！初見プレイが面白すぎた',g:'ネタ',b:4},
+  {t:'【DQ10】{k}で時間を無駄にしてない？',g:'攻略',b:4},
+  {t:'【DQ10】{k}の効率が3倍上がる方法',g:'攻略',b:5},
+  {t:'【DQ10】{k}がまじでヤバすぎる',g:'攻略',b:4},
+  {t:'【DQ10】{k}の相場が崩壊した件について',g:'金策',b:5},
+  {t:'【DQ10】{k}、実はこれ知らなかった...',g:'攻略',b:4},
+  {t:'【DQ10】{k}を1週間やってみた結果',g:'ネタ',b:4},
+  {t:'【DQ10】{k}でまさかの事態に...',g:'ネタ',b:4},
+  {t:'【DQ10】{k}、賛否両論の理由を徹底考察',g:'考察',b:4},
+  {t:'【DQ10】{k}の全貌が明らかに！',g:'考察',b:4},
+  {t:'【DQ10】{k}って実際どうなの？リアルな感想',g:'ネタ',b:3},
+  {t:'【DQ10】{k}で絶対やってはいけないこと',g:'攻略',b:5},
+  {t:'【DQ10】{k}の完璧な立ち回りを解説',g:'攻略',b:3},
+  {t:'【DQ10】{k}入門！これだけやれば大丈夫',g:'初心者',b:3},
+  {t:'【DQ10】{k}で号泣した話',g:'ネタ',b:4},
+  {t:'【DQ10】{k}の相場、今が買い時？',g:'金策',b:4},
+];
+
+const GENRE_DESC = {
+  攻略:'攻略情報・効率化のコツを解説',
+  金策:'効率的なゴールド稼ぎ方法を紹介',
+  初心者:'初心者・復帰プレイヤー向けの丁寧な解説',
+  考察:'ゲームの仕様・ストーリーを深掘り考察',
+  ネタ:'思わず笑えるあるある・体験談',
+  復帰勢:'久しぶりのプレイヤーが最初にやるべきこと',
+  エンドコンテンツ:'上級者向けの高難易度コンテンツ攻略',
+  装備:'最強装備の揃え方・強化のコツ',
+};
+
+const DEFAULT_KW = [
+  {w:'聖守護者の闘戦記',g:'エンドコンテンツ'},{w:'万魔の塔',g:'エンドコンテンツ'},
+  {w:'常闇の聖戦',g:'エンドコンテンツ'},{w:'レグナード',g:'エンドコンテンツ'},
+  {w:'バトルロード',g:'攻略'},{w:'錬金職人',g:'金策'},{w:'バザー金策',g:'金策'},
+  {w:'転生モンスター',g:'金策'},{w:'週課金策',g:'金策'},{w:'天地雷鳴士',g:'攻略'},
+  {w:'魔剣士',g:'攻略'},{w:'占い師',g:'攻略'},{w:'踊り子',g:'攻略'},
+  {w:'遊び人',g:'ネタ'},{w:'耐性装備',g:'装備'},{w:'宝珠強化',g:'装備'},
+  {w:'アクセサリー合成',g:'装備'},{w:'錬金効果',g:'装備'},
+  {w:'初心者おすすめ職業',g:'初心者'},{w:'冒険ガイド',g:'初心者'},
+  {w:'復帰のやることリスト',g:'復帰勢'},{w:'DQ10あるある',g:'ネタ'},
+  {w:'野良パーティ',g:'ネタ'},{w:'フレンド事情',g:'ネタ'},
+  {w:'ストーリー考察',g:'考察'},{w:'次バージョン予想',g:'考察'},
+  {w:'強ボス討伐',g:'攻略'},{w:'職業スキル振り',g:'攻略'},
+  {w:'週ボスの効率周回',g:'金策'},{w:'フィールドモンスター金策',g:'金策'},
+];
+
+// ============================================================
+// STATE
+// ============================================================
+const S = {
+  prompt: '',
+  title: '',
+  wiz: { genre:'', theme:'', target:'', duration:'', words:8000, extra:'' },
+};
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadSgEditor();
+  loadDefTarget();
+  const k = localStorage.getItem('ytKey') || '';
+  document.getElementById('yt-key').value = k;
+  renderHistory();
+});
+
+// ============================================================
+// STYLE GUIDE helpers
+// ============================================================
+function getStyleGuide() {
+  return localStorage.getItem('styleGuide') || document.getElementById('sg-default').value;
+}
+function loadSgEditor() {
+  document.getElementById('sg-editor').value = getStyleGuide();
+}
+function saveStyleGuide() {
+  localStorage.setItem('styleGuide', document.getElementById('sg-editor').value);
+  toast('スタイルガイドを保存しました ✓');
+}
+function resetStyleGuide() {
+  const def = document.getElementById('sg-default').value;
+  localStorage.setItem('styleGuide', def);
+  document.getElementById('sg-editor').value = def;
+  toast('デフォルトに戻しました ✓');
+}
+function extractCharSection(sg) {
+  const lines = sg.split('\n');
+  const out = [];
+  let cap = false, cnt = 0;
+  for (const l of lines) {
+    if (/^## [123]\./.test(l)) { cap = true; cnt++; }
+    else if (/^## [4-9]/.test(l) && cap) break;
+    if (cap) out.push(l);
+    if (cnt >= 3 && out.length > 10 && /^---/.test(l)) break;
+  }
+  if (out.length < 8) return `■ ビィビ（メイン進行役）
+- 明るく元気な主人公キャラ、ボケ担当
+- 語尾：「〜だよ」「〜なの」「〜から」「〜しちゃいました」
+- 自信満々に言い切った後でツッコまれる
+- 相づち：「そうそう！」「うんうん！」「ね！」
+
+■ りりせ（聞き役・ツッコミ役）
+- 視聴者の疑問を代弁する質問役
+- ツッコミは柔らかく：「〜けどね」「〜じゃ...」「〜だもんね」
+- ビィビの矛盾や弱点を優しく突っ込む
+
+■ ボケ・ツッコミパターン
+- パターンA: ビィビ自信満々 → りりせ一刀両断 → ビィビ沈黙
+- パターンB: りりせが視聴者を代表して心配 → 後で証明される
+- パターンC: ビィビが自白 → りりせ「まぁ仕方ないね」`;
+  return out.join('\n');
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function saveYtKey() {
+  localStorage.setItem('ytKey', document.getElementById('yt-key').value);
+  toast('APIキーを保存しました ✓');
+}
+function loadDefTarget() {
+  const saved = localStorage.getItem('defTarget');
+  if (!saved) return;
+  document.querySelectorAll('#default-target-grid .c-btn').forEach(b => {
+    if (b.dataset.value === saved) b.classList.add('selected');
+  });
+}
+function selDefTarget(el) {
+  document.querySelectorAll('#default-target-grid .c-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function saveDefTarget() {
+  const sel = document.querySelector('#default-target-grid .c-btn.selected');
+  if (sel) { localStorage.setItem('defTarget', sel.dataset.value); toast('保存しました ✓'); }
+  else toast('ターゲットを選択してください', 'w');
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(idx) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
+  document.querySelectorAll('.tab-panel').forEach((p,i) => p.classList.toggle('active', i===idx));
+  document.getElementById('prompt-area').classList.remove('on');
+}
+
+// ============================================================
+// MODE 1: BUZZ SEARCH
+// ============================================================
+async function startBuzz() {
+  const btn = document.getElementById('buzz-btn');
+  btn.disabled = true;
+  showLoading(true);
+  clearCards();
+  let kws = [], src = 'デフォルト';
+  try {
+    kws = await fetchDQ10News();
+    if (kws.length > 0) src = '公式サイト';
+  } catch(e) { console.log('DQ10 fetch failed', e); }
+
+  // YouTube if key set
+  if (kws.length < 5) {
+    const ytKey = localStorage.getItem('ytKey');
+    if (ytKey) {
+      try {
+        const yt = await fetchYT(ytKey);
+        if (yt.length > 0) { kws = [...kws, ...yt]; src = kws.length > 0 ? '公式+YouTube' : 'YouTube'; }
+      } catch(e) { console.log('YT failed', e); }
+    }
+  }
+
+  showLoading(false);
+  if (kws.length < 3) {
+    document.getElementById('fallback').classList.add('on');
+    btn.disabled = false;
+    return;
+  }
+  const titles = makeTitles(kws, src, 20);
+  renderCards(titles);
+  btn.disabled = false;
+}
+
+async function fetchDQ10News() {
+  const url = 'https://hiroba.dqx.jp/sc/news/';
+  const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 10000);
+  try {
+    const res = await fetch(proxy, { signal: ctrl.signal });
+    clearTimeout(timer);
+    const data = await res.json();
+    return parseKwFromHtml(data.contents || '');
+  } catch(e) { clearTimeout(timer); throw e; }
+}
+
+function parseKwFromHtml(html) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const kws = [];
+  const seen = new Set();
+  ['h1','h2','h3','h4','.ttl','.title','.news-title','a'].forEach(sel => {
+    doc.querySelectorAll(sel).forEach(el => {
+      const t = el.textContent.trim().replace(/\s+/g,' ');
+      if (t.length > 4 && t.length < 35 && !seen.has(t)) {
+        seen.add(t);
+        kws.push({w:t, g:detectGenre(t), fresh:true});
+      }
+    });
+  });
+  return kws.slice(0, 20);
+}
+
+async function fetchYT(apiKey) {
+  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=%E3%83%89%E3%83%A9%E3%82%AF%E3%82%A810&type=video&order=viewCount&maxResults=10&key=${apiKey}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.items.map(item => ({
+    w: item.snippet.title.replace(/【DQ10】|【ドラクエ10】|\[DQ10\]/gi,'').trim().slice(0,28),
+    g: detectGenre(item.snippet.title),
+    fresh: true,
+  })).filter(k => k.w.length > 3);
+}
+
+function detectGenre(t) {
+  if (/金策|バザー|錬金|G稼|ゴールド|時給|相場/.test(t)) return '金策';
+  if (/装備|武器|防具|アクセ|スキル|宝珠|錬金効果/.test(t)) return '装備';
+  if (/初心者|始め方|入門|基本|スタート/.test(t)) return '初心者';
+  if (/考察|設定|ストーリー|謎|秘密|歴史|なぜ/.test(t)) return '考察';
+  if (/あるある|笑|ネタ|失敗|やらかし|感動|泣|号泣/.test(t)) return 'ネタ';
+  if (/復帰|久しぶり|戻|ブランク/.test(t)) return '復帰勢';
+  if (/聖守護者|常闇|万魔|レグナード|ダークキング|コロシアム|エンド/.test(t)) return 'エンドコンテンツ';
+  return '攻略';
+}
+
+function makeTitles(kws, src, count) {
+  const tmpls = [...TEMPLATES].sort(() => Math.random()-.5);
+  const ks = [...kws].sort(() => Math.random()-.5);
+  const results = [], used = new Set();
+  for (let t=0; t<tmpls.length && results.length<count; t++) {
+    for (let k=0; k<ks.length && results.length<count; k++) {
+      const title = tmpls[t].t.replace('{k}', ks[k].w);
+      if (used.has(title) || title.length > 52) continue;
+      used.add(title);
+      const genre = ks[k].g || tmpls[t].g;
+      const buzz = Math.min(5, tmpls[t].b + (ks[k].fresh ? 1 : 0));
+      results.push({ title, genre, buzz, src, kw: ks[k].w, desc: GENRE_DESC[genre] || '動画の説明' });
+    }
+  }
+  results.sort((a,b) => b.buzz - a.buzz);
+  return results.slice(0, count);
+}
+
+function renderCards(items) {
+  const grid = document.getElementById('cards-grid');
+  grid.innerHTML = '';
+  items.forEach(item => {
+    const stars = '★'.repeat(item.buzz) + '☆'.repeat(5-item.buzz);
+    const el = document.createElement('div');
+    el.className = 't-card';
+    el.onclick = () => cardClick(item);
+    el.innerHTML = `<span class="genre-tag g-${item.genre}">${esc(item.genre)}</span>
+<div class="card-title">${esc(item.title)}</div>
+<div class="card-desc">${esc(item.desc)}</div>
+<div class="card-foot"><span class="card-buzz" title="バズ度">${stars}</span><span class="card-src">${esc(item.src)}</span></div>`;
+    grid.appendChild(el);
+  });
+}
+function clearCards() { document.getElementById('cards-grid').innerHTML = ''; }
+
+function cardClick(item) {
+  const p = buildPrompt({
+    title: item.title,
+    genre: item.genre,
+    target: localStorage.getItem('defTarget') || '中級者',
+    duration: '10〜15分',
+    words: 8000,
+    extra: '',
+    src: item.src,
+  });
+  showPrompt(p, item.title);
+}
+
+function genFromManual() {
+  const text = document.getElementById('manual-input').value.trim();
+  if (!text) { toast('テキストを入力してください', 'w'); return; }
+  const kws = text.split(/[\n。！？、,，]/).map(l=>l.trim()).filter(l=>l.length>3&&l.length<35)
+    .map(w => ({w, g:detectGenre(w), fresh:true})).slice(0,25);
+  const merged = [...kws, ...DEFAULT_KW.slice(0,10)];
+  renderCards(makeTitles(merged, '手動入力', 20));
+  document.getElementById('fallback').classList.remove('on');
+}
+function genFromDefaults() {
+  renderCards(makeTitles(DEFAULT_KW, 'デフォルト', 20));
+  document.getElementById('fallback').classList.remove('on');
+}
+
+// ============================================================
+// LOADING
+// ============================================================
+let loadInt = null;
+function showLoading(on) {
+  document.getElementById('loading-area').classList.toggle('on', on);
+  if (on) {
+    let i = 0;
+    const el = document.getElementById('loading-msg');
+    el.textContent = LOADING_MSGS[0];
+    loadInt = setInterval(() => {
+      i = (i+1) % LOADING_MSGS.length;
+      el.textContent = LOADING_MSGS[i];
+    }, 1800);
+  } else {
+    if (loadInt) { clearInterval(loadInt); loadInt = null; }
+  }
+}
+
+// ============================================================
+// MODE 2: WIZARD
+// ============================================================
+function selChoice(el) {
+  const field = el.dataset.field;
+  el.closest('.choice-grid').querySelectorAll('.c-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  S.wiz[field] = el.dataset.value;
+  if (field === 'duration') S.wiz.words = parseInt(el.dataset.words) || 8000;
+}
+
+function goStep(n) {
+  const cur = n - 1;
+  if (!validateStep(cur)) return;
+  document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('ws-' + n);
+  if (el) el.classList.add('active');
+  document.getElementById('prog-fill').style.width = (n/5*100) + '%';
+}
+
+function validateStep(n) {
+  if (n===1 && !S.wiz.genre) { toast('ジャンルを選択してください','w'); return false; }
+  if (n===2) {
+    S.wiz.theme = document.getElementById('theme-input').value.trim();
+    if (!S.wiz.theme) { toast('テーマを入力してください','w'); return false; }
+  }
+  if (n===3 && !S.wiz.target) { toast('ターゲット視聴者を選択してください','w'); return false; }
+  if (n===4 && !S.wiz.duration) { toast('動画の長さを選択してください','w'); return false; }
+  return true;
+}
+
+function skipExtra() { S.wiz.extra = ''; genFromWizard(); }
+function genFromWizard() {
+  S.wiz.extra = document.getElementById('extra-input').value.trim();
+  if (!S.wiz.genre || !S.wiz.theme) { toast('ジャンルとテーマは必須です','w'); return; }
+  const p = buildPrompt({
+    title: '【DQ10】' + S.wiz.theme,
+    genre: S.wiz.genre,
+    target: S.wiz.target || localStorage.getItem('defTarget') || '中級者',
+    duration: S.wiz.duration || '10〜15分',
+    words: S.wiz.words || 8000,
+    extra: S.wiz.extra,
+    src: '対話型入力',
+  });
+  showPrompt(p, '【DQ10】' + S.wiz.theme);
+}
+
+async function fetchNewsStep2() {
+  const el = document.getElementById('step2-news');
+  el.innerHTML = '<p style="font-size:.78rem;color:var(--text-muted)">情報を取得中...</p>';
+  try {
+    const kws = await fetchDQ10News();
+    if (!kws || kws.length===0) throw new Error('no data');
+    el.innerHTML = '<div class="section-lbl" style="margin-bottom:8px">最近のDQ10トピック（クリックで選択）</div>';
+    kws.slice(0,8).forEach(kw => {
+      const b = document.createElement('button');
+      b.className = 'c-btn';
+      b.style.cssText = 'margin-bottom:6px;width:100%;text-align:left;font-size:.82rem';
+      b.textContent = kw.w;
+      b.onclick = () => { document.getElementById('theme-input').value = kw.w; el.innerHTML = ''; };
+      el.appendChild(b);
+    });
+  } catch(e) {
+    el.innerHTML = '<p style="font-size:.78rem;color:var(--text-muted)">取得できませんでした。手動で入力してください。</p>';
+  }
+}
+
+// ============================================================
+// PROMPT BUILDER
+// ============================================================
+function buildPrompt({title, genre, target, duration, words, extra, src}) {
+  const sg = getStyleGuide();
+  const charSection = extractCharSection(sg);
+  const ref = extra || (src!=='デフォルト'&&src!=='対話型入力' ? `情報ソース：${src}` : 'なし');
+
+  return `あなたはドラゴンクエスト10のYouTube台本ライターです。
+以下の設定に従い、ビィビとりりせの対話形式で${words}文字程度の台本を作成してください。
+
+【テーマ】${title}
+【ジャンル】${genre}
+【ターゲット視聴者】${target}
+【動画の尺】${duration}（目安：${words}文字程度）
+【参考情報】${ref}
+
+【キャラクター設定】
+${charSection}
+
+【台本ルール】
+- ビィビとりりせの掛け合い対話形式
+- ${words}文字程度
+- 冒頭に視聴者への挨拶（チャンネル登録促し含む）
+- 構成：導入(10%) → 本題(75%) → まとめ(15%)
+- 本題は3〜5セクションに分ける
+- セクション間は自然な会話で転換
+- 視聴者を引き込むフック（「この後さらにすごい情報が...」等）
+- 概要欄用のタイムスタンプも最後に生成
+- 情報は正確に（バージョン名、アイテム名、クエスト名など）
+
+【出力フォーマット】
+ビィビ：「セリフ」
+りりせ：「セリフ」
+（ナレーション or ト書き）
+
+それでは台本を作成してください。`;
+}
+
+// ============================================================
+// PROMPT DISPLAY
+// ============================================================
+function showPrompt(prompt, title) {
+  S.prompt = prompt;
+  S.title = title;
+  document.getElementById('prompt-preview').textContent = prompt;
+  document.getElementById('prompt-area').classList.add('on');
+  setTimeout(() => document.getElementById('prompt-area').scrollIntoView({behavior:'smooth',block:'start'}), 120);
+  saveHistory(prompt, title);
+}
+function closePrompt() { document.getElementById('prompt-area').classList.remove('on'); }
+
+function copyPrompt() {
+  if (!S.prompt) return;
+  const btn = document.getElementById('copy-btn');
+  const orig = btn.innerHTML;
+  const done = () => { btn.innerHTML = '✅ コピーしました！'; toast('プロンプトをコピーしました ✓'); setTimeout(()=>btn.innerHTML=orig,2200); };
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(S.prompt).then(done).catch(() => fallbackCopy());
+  } else { fallbackCopy(); }
+  function fallbackCopy() {
+    const ta = document.createElement('textarea');
+    ta.value = S.prompt;
+    ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta); done();
+  }
+}
+
+// ============================================================
+// HISTORY
+// ============================================================
+function saveHistory(prompt, title) {
+  let h = JSON.parse(localStorage.getItem('promptHistory')||'[]');
+  h.unshift({
+    id: Date.now(), title, prompt,
+    date: new Date().toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}),
+  });
+  if (h.length > 20) h = h.slice(0,20);
+  localStorage.setItem('promptHistory', JSON.stringify(h));
+  renderHistory();
+}
+function renderHistory() {
+  const h = JSON.parse(localStorage.getItem('promptHistory')||'[]');
+  const el = document.getElementById('hist-list');
+  if (h.length===0) { el.innerHTML='<div class="hist-empty">まだ生成したプロンプトがありません</div>'; return; }
+  el.innerHTML = h.map(item => `<div class="hist-item">
+<div class="hist-hdr"><div class="hist-title">${esc(item.title)}</div><div class="hist-date">${esc(item.date)}</div></div>
+<div class="hist-preview">${esc(item.prompt.slice(0,120))}...</div>
+<div class="hist-acts">
+<button class="btn btn-ghost" style="font-size:.74rem;padding:4px 10px" onclick="loadHist(${item.id})">📋 再利用</button>
+<button class="btn btn-danger" style="font-size:.74rem;padding:4px 10px" onclick="delHist(${item.id})">🗑️ 削除</button>
+</div></div>`).join('');
+}
+function loadHist(id) {
+  const h = JSON.parse(localStorage.getItem('promptHistory')||'[]');
+  const item = h.find(x=>x.id===id);
+  if (item) { showPrompt(item.prompt, item.title); closePanels(); }
+}
+function delHist(id) {
+  let h = JSON.parse(localStorage.getItem('promptHistory')||'[]');
+  h = h.filter(x=>x.id!==id);
+  localStorage.setItem('promptHistory', JSON.stringify(h));
+  renderHistory();
+}
+
+// ============================================================
+// PANELS
+// ============================================================
+function openSettings() { loadSgEditor(); openPanel('panel-settings'); }
+function openHistory() { renderHistory(); openPanel('panel-history'); }
+function openPanel(id) {
+  document.getElementById(id).classList.add('open');
+  document.getElementById('overlay').classList.add('on');
+}
+function closePanels() {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('open'));
+  document.getElementById('overlay').classList.remove('on');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+let toastTm = null;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('on');
+  if (toastTm) clearTimeout(toastTm);
+  toastTm = setTimeout(()=>el.classList.remove('on'), 2600);
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
